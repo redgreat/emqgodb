@@ -1,0 +1,18 @@
+emqx:
+  broker: "xxxxxxx:1883"
+  client_id: "123"
+  username: "xxx"
+  password: "xxx"
+  topic: "xxx"
+  qos: 1
+  ssl:
+    enabled: true
+
+postgresql:
+  host: "localhost"
+  port: 5432
+  database: "xxx"
+  username: "xxx"
+  password: "xxx"
+  sslmode: "disable"
+  table: "xxx"

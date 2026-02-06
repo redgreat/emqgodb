@@ -1,0 +1,25 @@
+services:
+  emqgodb:
+    build:
+      context: .
+      dockerfile: DockerfileLocal
+    container_name: emqgodb
+    restart: unless-stopped
+    volumes:
+      - ./config:/app/config:ro
+    environment:
+      - TZ=Asia/Shanghai
+      - DISABLE_IPV6=true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          memory: 128MB
+        reservations:
+          memory: 8M
+    mem_swappiness: 0
+    oom_kill_disable: true

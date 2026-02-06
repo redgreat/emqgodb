@@ -1,0 +1,46 @@
+# 构建阶段 - 使用阿里云镜像
+FROM registry.cn-hangzhou.aliyuncs.com/library/golang:1.21-alpine AS builder
+
+# 使用阿里云Alpine镜像源
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+    apk add --no-cache git ca-certificates tzdata
+
+# 配置Go代理为国内源
+ENV GOPROXY=https://goproxy.cn,direct
+
+WORKDIR /build
+
+# 复制依赖文件
+COPY go.mod go.sum ./
+RUN go mod download
+
+# 复制源代码
+COPY src/ ./src/
+
+# 编译
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build \
+    -ldflags="-w -s" \
+    -o emqgodb ./src
+
+# 运行阶段 - 使用阿里云镜像
+FROM registry.cn-hangzhou.aliyuncs.com/library/alpine:3.19
+
+# 使用阿里云Alpine镜像源
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories && \
+    apk add --no-cache ca-certificates tzdata
+
+# 创建非root用户
+RUN adduser -D -g '' appuser
+
+WORKDIR /app
+
+# 从构建阶段复制二进制文件
+COPY --from=builder /build/emqgodb .
+
+# 创建配置目录
+RUN mkdir -p /app/config && chown -R appuser:appuser /app
+
+USER appuser
+
+ENTRYPOINT ["./emqgodb"]
+CMD ["-config", "/app/config/config.yaml"]
