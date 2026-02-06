@@ -1,5 +1,5 @@
 # 构建阶段
-FROM golang:1.21-alpine AS builder
+FROM golang:1.24-alpine AS builder
 
 RUN apk add --no-cache git ca-certificates tzdata
 
@@ -30,8 +30,8 @@ WORKDIR /app
 # 从构建阶段复制二进制文件
 COPY --from=builder /build/emqgodb .
 
-# 创建配置和证书目录
-RUN mkdir -p /app/config /app/certs && chown -R appuser:appuser /app
+# 创建配置目录
+RUN mkdir -p /app/config && chown -R appuser:appuser /app
 
 USER appuser
 
